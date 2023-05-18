@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="moi.css" />
+    <link rel="stylesheet" href="icon/css/all.css">
+</head>
+
+<body>
+    <div id="wrapper">
+        <div id="header">
+            <div id="toggle">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+            <nav>
+                <ul id="main-menu">
+                    <li>
+                        <a href="">Trang chu</a>
+                    </li>
+                    <li><a href="">Gioi thieu</a></li>
+                    <li><a href="">San pham</a></li>
+                    <li><a href="">Dich vu</a></li>
+                    <li><a href="">Blog</a></li>
+                    <li><a href="">Lien he</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</body>
+<script src="jquery/jquery-3.3.1.min.js"></script>
+<script src="icon/js/all.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#toggle').click(function(){
+            $('nav').slideToggle();
+        });
+    })
+</script>
+
+</html>

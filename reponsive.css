@@ -1,0 +1,183 @@
+@media (min-width:768px) and (max-width: 1024px) {
+    .menu-list{
+        padding: 0 10px;
+    }
+    .list-fix{
+        right: 0%;
+    }
+    .trademark-list{
+        padding: 0 10px;
+    }
+    .news-watches-left {
+        flex-basis: 60%;
+    }
+    .news-watches-right{
+        flex-basis: 37%;
+    }
+    .news-watches {
+    
+        padding: 0 10px;
+    }
+    .watchman{
+        font-size: 10px;
+        line-height: 20px;
+    }
+    .price-range>ul>li {
+        margin-bottom: 8px;
+    }
+    .typewatch>ul>li {
+        margin-bottom: 9px;
+    }
+    .watchmanhot>ul>li>a>p {    
+        font-size: 7px;       
+    }
+    .header-typewatch {
+        font-size: 15px;
+    }
+    .materialwatch > ul > li > a > p {
+         
+        font-size: 7px;
+    }
+    .typewatch>ul>li>a>p {
+        font-size: 7px;   
+    }
+}
+@media (max-width:768px){
+    .content-new-watches-text {
+        padding: 1px 10px;
+    }
+    .header-news-watches-left::before {
+        content: "";
+        position: absolute;
+        width: 26%;
+        height: 1px;
+        margin-right: 31px;
+        bottom: 0;
+        top: 50%;
+        left: 0;
+        background: #ccc;
+    }
+    .header-news-watches-left::after {
+        content: "";
+        position: absolute;
+        width: 26%;
+        height: 1px;
+        margin-left: 30px;
+        bottom: 0;
+        top: 50%;
+        background: #ccc;
+        right: 0;}
+        .news-watch-right-list {
+            line-height: 16px;
+            margin-bottom: 0;
+            padding: 5px 1px;
+        }
+        .content-new-watches-text-bodytwo {
+           
+            font-size: 12px;
+        }
+        .sticky .menu .menu-list .menu-list_item .menu-list_link {
+            color: rgb(255, 255, 255);
+            font-size: 13px;
+        }
+        .menu-list {
+            font-size: 12px;
+           
+        }
+
+        .header {
+        
+            padding: 20px 22px;
+        }
+        .header-search {
+       display: block;
+        
+            justify-content: space-between;
+            align-items: center;
+         
+        }
+        .header-logo{
+            order: 1;
+            flex: 1;
+        }
+        .header-right {
+            order: 1;
+            font-size: 10px;
+        }
+        .header-search_input-text {
+            display: none;
+        }
+        .header-search_wrap {
+            border: none;
+            
+          
+        }
+        
+        .header-search_button button {
+            height: 42px;
+            width: 42px;
+            border: 0;
+            border-radius: 15px;
+            /* background-color: #dc3545; */
+            background: #f8f8f8;
+            transition: cubic-bezier(0.075, 0.82, 0.165, 1);
+            color: #000;
+        }
+        .header-right_list-item:first-child,.header-right_list-item:nth-child(2){
+            display: none;
+        }
+        .header-logo_img {
+            width: 170px;
+            min-height: 20px;
+            margin-left: -22%;
+        }
+        ul.products {
+            display: flex;
+        
+            margin: auto;
+            padding: 0 10%;
+            justify-content: space-between;
+            list-style: none;
+        }
+        ul.products li {
+            flex-basis: 43%;
+         
+        }
+        .trademark-list {
+           
+            padding: 0 30px;
+        }
+        .trademark-item {
+            flex-basis: 43%;
+            box-sizing: border-box;
+            margin-bottom: 18px;
+        }
+        .footer-list {
+            display: block;
+            text-align: center;
+         
+        }
+        .hotline {
+            border: 2px dotted #fff;
+            align-self: center;
+            transform: rotate(0);
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+        .info-cat {
+            margin-bottom: 30px;
+        }
+        .area-contact {
+            display: flex;
+            justify-content: space-evenly;
+            text-align: center;
+            margin: auto;
+        }
+        .area-contact .location{
+            padding: 0;
+        }
+        .menu-list{
+            display: none;
+        }
+       
+}

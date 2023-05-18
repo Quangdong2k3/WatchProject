@@ -1,0 +1,50 @@
+* {
+    margin: 0px;
+    padding: 0px;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+ul{
+    list-style: none;
+}
+
+nav{
+    background-color: rgba(39, 60, 117,1.0);
+}
+
+#main-menu {
+    display: flex;
+}
+
+nav #main-menu li a{
+color: white;
+text-decoration: none;
+display: block;
+padding: 8px 15px;
+}
+nav #main-menu li:hover a{
+    background-color: rgba(232, 65, 24,1.0);
+    transition: all 0.3s;
+}
+#toggle{
+    text-align: end;
+    color: white;
+    background-color: blueviolet;
+    padding: 10px;
+    cursor: pointer;
+    display: none;
+}
+/* Do rong be <768 */
+/* @media screen and (max-width: 768px){
+    #main-menu{
+        flex-direction: column;
+        text-align: center;
+        
+    }
+    #toggle{
+        display: block;
+    }
+    nav{
+        display: none;
+    }
+} */
