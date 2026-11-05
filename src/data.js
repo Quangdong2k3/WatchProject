@@ -1,8 +1,9 @@
-import logo from '../anh/Watch71.png';
+import logo from './assets/watch-dak-logo.svg';
+import logoLight from './assets/watch-dak-logo-light.svg';
 import heroCouple from '../anh/10._CTA.jpg';
 import newsImage from '../anh/news.webp';
 
-export const siteAssets = { logo, heroCouple, newsImage };
+export const siteAssets = { logo, logoLight, heroCouple, newsImage };
 
 const watchImages = import.meta.glob('../anh/anhsp/**/*.{jpg,jpeg,png,webp}', {
   eager: true,

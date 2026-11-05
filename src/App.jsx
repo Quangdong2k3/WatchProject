@@ -11,12 +11,15 @@ import {
   MapPin,
   Menu,
   MessageCircle,
+  Moon,
   Minus,
   Plus,
   Search,
   Send,
   ShieldCheck,
+  Snowflake,
   ShoppingBag,
+  Sun,
   Truck,
   UserRound,
   X
@@ -87,6 +90,13 @@ function Reveal({ as: Element = 'div', children, className = '', delay = 0 }) {
 }
 
 function App() {
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('watch-dak-theme') === 'dark' ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
+  });
   const [cartItems, setCartItems] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('watch-dak-cart') || '[]');
@@ -96,6 +106,11 @@ function App() {
   });
   const [cartOpen, setCartOpen] = useState(false);
   const [toast, setToast] = useState('');
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('watch-dak-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem('watch-dak-cart', JSON.stringify(cartItems));
@@ -140,7 +155,12 @@ function App() {
   return (
     <CartContext.Provider value={cartContext}>
       <ScrollManager />
-      <SiteHeader onOpenCart={() => setCartOpen(true)} />
+      <SiteHeader
+        onOpenCart={() => setCartOpen(true)}
+        theme={theme}
+        onToggleTheme={() => setTheme((currentTheme) => currentTheme === 'dark' ? 'light' : 'dark')}
+      />
+      <ChristmasEffects />
       <main>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -151,7 +171,6 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/formdnhap/formdnhap.html" element={<RegisterPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/moi.html" element={<Navigate to="/" replace />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
@@ -166,7 +185,7 @@ function App() {
   );
 }
 
-function SiteHeader({ onOpenCart }) {
+function SiteHeader({ onOpenCart, theme, onToggleTheme }) {
   const [searchText, setSearchText] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -207,6 +226,9 @@ function SiteHeader({ onOpenCart }) {
           <button type="submit" aria-label="Tìm kiếm"><Search size={18} /></button>
         </form>
         <div className="header-actions">
+          <button className="theme-toggle icon-button" type="button" aria-label={theme === 'dark' ? 'Bật giao diện sáng' : 'Bật giao diện tối'} title={theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'} onClick={onToggleTheme}>
+            {theme === 'dark' ? <Sun size={19} /> : <Moon size={18} />}
+          </button>
           {user ? (
             <div className="signed-in-actions">
               <span className="signed-in-name" title={user.email || ''}><UserRound size={17} />{user.displayName || user.email}</span>
@@ -230,6 +252,41 @@ function SiteHeader({ onOpenCart }) {
         </div>
       </nav>
     </header>
+  );
+}
+
+function ChristmasEffects() {
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  useEffect(() => {
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setReducedMotion(motionPreference.matches);
+    motionPreference.addEventListener('change', updatePreference);
+    return () => motionPreference.removeEventListener('change', updatePreference);
+  }, []);
+
+  if (reducedMotion) return null;
+
+  return (
+    <div className="christmas-effects" aria-hidden="true">
+      {Array.from({ length: 18 }, (_, index) => (
+        <Snowflake
+          className="christmas-snowflake"
+          key={index}
+          size={index % 4 === 0 ? 14 : 10}
+          style={{
+            '--snow-left': `${(index * 37 + 8) % 100}%`,
+            '--snow-delay': `${(index % 9) * -1.7}s`,
+            '--snow-duration': `${13 + (index % 6) * 2}s`,
+            '--snow-drift': `${((index % 5) - 2) * 34}px`,
+            '--snow-opacity': `${0.3 + (index % 4) * 0.1}`
+          }}
+        />
+      ))}
+      <div className="christmas-lights">
+        {Array.from({ length: 9 }, (_, index) => <i key={index} style={{ '--light-delay': `${index * 170}ms` }} />)}
+      </div>
+    </div>
   );
 }
 
@@ -673,7 +730,7 @@ function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="wrap footer-main">
-        <div className="footer-brand"><img src={siteAssets.logo} alt="WATCH DAK" /><p>Chọn nhịp thời gian phù hợp với phong cách của bạn.</p><span><MapPin size={15} /> TP. Hồ Chí Minh · Việt Nam</span></div>
+        <div className="footer-brand"><img src={siteAssets.logoLight} alt="WATCH DAK" /><p>Chọn nhịp thời gian phù hợp với phong cách của bạn.</p><span><MapPin size={15} /> TP. Hồ Chí Minh · Việt Nam</span></div>
         <div className="footer-column"><h3>Hỗ trợ</h3><Link to="/Buynow.html">Hướng dẫn mua hàng</Link><Link to="/Buynow.html">Chính sách bảo hành</Link><Link to="/Buynow.html">Đổi trả trong 7 ngày</Link></div>
         <div className="footer-column"><h3>WATCH DAK</h3><Link to="/#brands">Thương hiệu</Link><Link to="/#journal">Tạp chí</Link><Link to="/register">Ưu đãi thành viên</Link></div>
         <div className="footer-column"><h3>Kết nối</h3><a href="mailto:hello@watchdak.vn">hello@watchdak.vn</a><span>1900 8386</span><span>Thứ 2 – Chủ nhật · 9:00–21:00</span></div>

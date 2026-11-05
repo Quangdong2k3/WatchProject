@@ -9,7 +9,6 @@ export default defineConfig({
         main: 'index.html',
         buyNow: 'Buynow.html',
         login: 'LOGIN.html',
-        menuDemo: 'moi.html',
         register: 'formdnhap/formdnhap.html'
       }
     }
