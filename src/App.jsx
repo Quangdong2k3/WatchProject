@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { brands, formatPrice, products, siteAssets } from './data.js';
 import { getAuthMessage, useAuth } from './auth.jsx';
+import { createOrderId, createVietQrImage, paymentConfig } from './payments.js';
 
 const CartContext = createContext(null);
 
@@ -90,6 +91,8 @@ function Reveal({ as: Element = 'div', children, className = '', delay = 0 }) {
 }
 
 function App() {
+  const navigate = useNavigate();
+  const { user, authReady } = useAuth();
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('watch-dak-theme') === 'dark' ? 'dark' : 'light';
@@ -116,7 +119,22 @@ function App() {
     localStorage.setItem('watch-dak-cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
+  const showToast = (message) => {
+    setToast(message);
+    window.setTimeout(() => setToast(''), 2600);
+  };
+
   const addToCart = (product, quantity = 1) => {
+    if (!authReady) {
+      showToast('Đang kiểm tra trạng thái đăng nhập. Vui lòng thử lại.');
+      return false;
+    }
+    if (!user) {
+      showToast('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.');
+      navigate('/login');
+      return false;
+    }
+
     setCartItems((currentItems) => {
       const existing = currentItems.find((item) => item.id === product.id);
       if (existing) {
@@ -126,11 +144,22 @@ function App() {
       }
       return [...currentItems, { ...product, quantity }];
     });
-    setToast(`${product.name} đã được thêm vào giỏ`);
-    window.setTimeout(() => setToast(''), 2600);
+    showToast(`${product.name} đã được thêm vào giỏ`);
+    return true;
   };
 
   const setQuantity = (productId, quantity) => {
+    const currentItem = cartItems.find((item) => item.id === productId);
+    if (quantity > (currentItem?.quantity || 0) && !authReady) {
+      showToast('Đang kiểm tra trạng thái đăng nhập. Vui lòng thử lại.');
+      return;
+    }
+    if (quantity > (currentItem?.quantity || 0) && !user) {
+      showToast('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.');
+      navigate('/login');
+      return;
+    }
+
     setCartItems((currentItems) => currentItems
       .map((item) => item.id === productId ? { ...item, quantity } : item)
       .filter((item) => item.quantity > 0));
@@ -191,6 +220,10 @@ function SiteHeader({ onOpenCart, theme, onToggleTheme }) {
   const navigate = useNavigate();
   const { cartCount } = useCart();
   const { user, signOut } = useAuth();
+  const brandsByCategory = (category) => [...new Set(
+    products.filter((product) => product.category === category).map((product) => product.brand)
+  )];
+  const allBrands = [...new Set(products.map((product) => product.brand))];
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -243,10 +276,33 @@ function SiteHeader({ onOpenCart, theme, onToggleTheme }) {
       </div>
       <nav className={`main-nav ${menuOpen ? 'is-open' : ''}`} aria-label="Danh mục chính">
         <div className="main-nav-inner wrap">
-          <Link to="/#menwatch" onClick={closeMenu}>Đồng hồ nam</Link>
-          <Link to="/#womenwatch" onClick={closeMenu}>Đồng hồ nữ</Link>
+          <div className="nav-item">
+            <Link to="/#menwatch" onClick={closeMenu}>Đồng hồ nam</Link>
+            <div className="nav-dropdown" aria-label="Thương hiệu đồng hồ nam">
+              <Link to="/?q=nam" onClick={closeMenu}>Tất cả đồng hồ nam</Link>
+              {brandsByCategory('Nam').map((brand) => (
+                <Link key={brand} to={`/?q=${encodeURIComponent(brand)}`} onClick={closeMenu}>{brand}</Link>
+              ))}
+            </div>
+          </div>
+          <div className="nav-item">
+            <Link to="/#womenwatch" onClick={closeMenu}>Đồng hồ nữ</Link>
+            <div className="nav-dropdown" aria-label="Thương hiệu đồng hồ nữ">
+              <Link to="/?q=nữ" onClick={closeMenu}>Tất cả đồng hồ nữ</Link>
+              {brandsByCategory('Nữ').map((brand) => (
+                <Link key={brand} to={`/?q=${encodeURIComponent(brand)}`} onClick={closeMenu}>{brand}</Link>
+              ))}
+            </div>
+          </div>
           <Link to="/products" onClick={closeMenu}>Bộ sưu tập</Link>
-          <Link to="/#brands" onClick={closeMenu}>Thương hiệu</Link>
+          <div className="nav-item">
+            <Link to="/#brands" onClick={closeMenu}>Thương hiệu</Link>
+            <div className="nav-dropdown" aria-label="Danh sách thương hiệu">
+              {allBrands.map((brand) => (
+                <Link key={brand} to={`/?q=${encodeURIComponent(brand)}`} onClick={closeMenu}>{brand}</Link>
+              ))}
+            </div>
+          </div>
           <Link to="/#journal" onClick={closeMenu}>Tạp chí</Link>
           <Link to="/register" onClick={closeMenu}>Ưu đãi thành viên <ArrowUpRight size={14} /></Link>
         </div>
@@ -467,9 +523,10 @@ function ProductPage() {
   const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
-    addToCart(product, quantity);
-    setAdded(true);
-    window.setTimeout(() => setAdded(false), 2200);
+    if (addToCart(product, quantity)) {
+      setAdded(true);
+      window.setTimeout(() => setAdded(false), 2200);
+    }
   };
 
   return (
@@ -502,17 +559,100 @@ function ProductPage() {
 
 function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
-  const [orderComplete, setOrderComplete] = useState(false);
+  const [order, setOrder] = useState(null);
+  const [orderRequest, setOrderRequest] = useState(null);
+  const [qrImage, setQrImage] = useState('');
+  const [qrError, setQrError] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!order) return undefined;
+    let active = true;
+    setQrError('');
+    createVietQrImage(order.total, order.orderCode)
+      .then((image) => { if (active) setQrImage(image); })
+      .catch(() => { if (active) setQrError('Không tạo được mã QR. Bạn có thể chuyển khoản thủ công theo thông tin bên dưới.'); });
+    return () => { active = false; };
+  }, [order]);
+
+  const createOrder = async (request) => {
+    setError('');
+    setBusy(true);
+    setOrderRequest(request);
+    try {
+      const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+      if (!projectId) throw new Error('Thiếu cấu hình Firebase project để gửi đơn hàng.');
+
+      const response = await fetch(`https://asia-southeast1-${projectId}.cloudfunctions.net/createOrder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+      });
+      const result = await response.json().catch(() => null);
+      if (response.status === 404) {
+        throw new Error('Chức năng đặt hàng chưa được triển khai trên Firebase. Cần deploy Cloud Function trước khi checkout.');
+      }
+      if (!response.ok) throw new Error(result?.error || 'Không thể tạo đơn hàng. Vui lòng thử lại.');
+      if (!result) throw new Error('Máy chủ trả về phản hồi không hợp lệ. Vui lòng thử lại.');
+
+      setOrder(result);
+      clearCart();
+    } catch (submitError) {
+      setError(submitError.message || 'Không thể kết nối hệ thống đặt hàng. Vui lòng thử lại.');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    clearCart();
-    setOrderComplete(true);
-    event.currentTarget.reset();
+    if (orderRequest) {
+      createOrder(orderRequest);
+      return;
+    }
+    const formData = new FormData(event.currentTarget);
+    createOrder({
+      orderId: createOrderId(),
+      customer: {
+        name: formData.get('name'),
+        phone: formData.get('phone'),
+        email: formData.get('email'),
+        address: formData.get('address'),
+        note: formData.get('note')
+      },
+      items: cartItems.map(({ id, quantity }) => ({ id, quantity }))
+    });
   };
 
-  if (orderComplete) {
-    return <section className="wrap checkout-complete"><span className="success-mark"><Check size={26} /></span><span className="eyebrow">ĐẶT HÀNG THÀNH CÔNG</span><h1>Cảm ơn bạn đã tin chọn WATCH DAK.</h1><p>Đây là bản giao diện React demo; đơn hàng chưa được gửi đến hệ thống bán hàng.</p><Link className="button button-dark" to="/products">Tiếp tục mua sắm <ArrowRight size={16} /></Link></section>;
+  if (order) {
+    return (
+      <section className="wrap checkout-complete payment-complete">
+        <span className="success-mark"><Check size={26} /></span>
+        <span className="eyebrow">ĐƠN HÀNG ĐÃ ĐƯỢC GHI NHẬN</span>
+        <h1>Cảm ơn bạn đã tin chọn WATCH DAK.</h1>
+        <p>Đơn <strong>{order.orderCode}</strong> đang chờ cửa hàng xác nhận chuyển khoản. Đơn chưa được đánh dấu là đã thanh toán.</p>
+        <div className="payment-instructions">
+          {qrImage && <img className="payment-qr" src={qrImage} alt={`Mã VietQR thanh toán đơn ${order.orderCode}`} />}
+          <div>
+            <h2>Chuyển khoản VietinBank</h2>
+            <p><strong>Ngân hàng:</strong> {paymentConfig.bankName}</p>
+            <p><strong>Số tài khoản:</strong> {paymentConfig.accountNumber}</p>
+            <p><strong>Chủ tài khoản:</strong> {paymentConfig.accountName}</p>
+            <p><strong>Số tiền:</strong> {formatPrice(order.total)}</p>
+            <p><strong>Nội dung:</strong> {order.orderCode}</p>
+            {qrError && <p className="payment-warning" role="alert">{qrError}</p>}
+            <p className="payment-warning">Vui lòng chuyển đúng số tiền và nội dung. Cửa hàng sẽ đối soát giao dịch trước khi xác nhận thanh toán.</p>
+            {!order.emailsSent && (
+              <div className="payment-email-warning" role="status">
+                Chưa gửi được email xác nhận. {orderRequest && <button className="text-button" type="button" disabled={busy} onClick={() => createOrder(orderRequest)}>{busy ? 'Đang gửi...' : 'Thử gửi lại email'}</button>}
+              </div>
+            )}
+          </div>
+        </div>
+        <Link className="button button-dark" to="/products">Tiếp tục mua sắm <ArrowRight size={16} /></Link>
+      </section>
+    );
   }
 
   if (!cartItems.length) {
@@ -529,9 +669,10 @@ function CheckoutPage() {
           <label>Email<input name="email" type="email" autoComplete="email" required /></label>
           <label>Địa chỉ nhận hàng<input name="address" autoComplete="street-address" required /></label>
           <label>Ghi chú<textarea name="note" rows="3" placeholder="Yêu cầu giao hàng (không bắt buộc)" /></label>
-          <button className="button button-dark form-submit" type="submit">Xác nhận đặt hàng <ArrowRight size={16} /></button>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="button button-dark form-submit" type="submit" disabled={busy}>{busy ? 'Đang tạo đơn hàng...' : 'Đặt hàng và thanh toán VietQR'} {!busy && <ArrowRight size={16} />}</button>
         </form>
-        <aside className="checkout-summary"><h2>Đơn hàng của bạn</h2>{cartItems.map((item) => <div className="checkout-line" key={item.id}><span>{item.name} × {item.quantity}</span><strong>{formatPrice(item.price * item.quantity)}</strong></div>)}<div className="checkout-total"><span>Tổng cộng</span><strong>{formatPrice(cartTotal)}</strong></div><p>Thanh toán khi nhận hàng. Đơn này chỉ mô phỏng giao diện, chưa gửi tới máy chủ.</p></aside>
+        <aside className="checkout-summary"><h2>Đơn hàng của bạn</h2>{cartItems.map((item) => <div className="checkout-line" key={item.id}><span>{item.name} × {item.quantity}</span><strong>{formatPrice(item.price * item.quantity)}</strong></div>)}<div className="checkout-total"><span>Tổng cộng</span><strong>{formatPrice(cartTotal)}</strong></div><p>Thanh toán bằng VietQR/chuyển khoản ngân hàng. Đơn sẽ chờ cửa hàng đối soát trước khi xác nhận thanh toán.</p></aside>
       </div>
     </div>
   );

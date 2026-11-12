@@ -2,6 +2,7 @@ import logo from './assets/watch-dak-logo.svg';
 import logoLight from './assets/watch-dak-logo-light.svg';
 import heroCouple from '../anh/10._CTA.jpg';
 import newsImage from '../anh/news.webp';
+import collections from '../shared/catalog.json';
 
 export const siteAssets = { logo, logoLight, heroCouple, newsImage };
 
@@ -10,17 +11,6 @@ const watchImages = import.meta.glob('../anh/anhsp/**/*.{jpg,jpeg,png,webp}', {
   import: 'default',
   query: '?url'
 });
-
-const collections = {
-  applewatch: { brand: 'Apple', prefix: 'Watch', category: 'Nữ', basePrice: 7490000 },
-  aura: { brand: 'Aura', prefix: 'Aura', category: 'Nữ', basePrice: 2890000 },
-  casio: { brand: 'Casio', prefix: 'G-Shock', category: 'Nam', basePrice: 3375900 },
-  citizen: { brand: 'Citizen', prefix: 'Eco-Drive', category: 'Nam', basePrice: 5250000 },
-  mido: { brand: 'Mido', prefix: 'Swiss', category: 'Nữ', basePrice: 8900000 },
-  orient: { brand: 'Orient', prefix: 'Automatic', category: 'Nam', basePrice: 6590000 },
-  seiko: { brand: 'Seiko', prefix: '5 Series', category: 'Nam', basePrice: 7182500 },
-  tissot: { brand: 'Tissot', prefix: 'Swiss', category: 'Nữ', basePrice: 10990000 }
-};
 
 export const products = Object.entries(watchImages)
   .map(([path, image]) => {

@@ -1,0 +1,10 @@
+{
+  "applewatch": { "brand": "Apple", "prefix": "Watch", "category": "Nữ", "basePrice": 7490000 },
+  "aura": { "brand": "Aura", "prefix": "Aura", "category": "Nữ", "basePrice": 2890000 },
+  "casio": { "brand": "Casio", "prefix": "G-Shock", "category": "Nam", "basePrice": 3375900 },
+  "citizen": { "brand": "Citizen", "prefix": "Eco-Drive", "category": "Nam", "basePrice": 5250000 },
+  "mido": { "brand": "Mido", "prefix": "Swiss", "category": "Nữ", "basePrice": 8900000 },
+  "orient": { "brand": "Orient", "prefix": "Automatic", "category": "Nam", "basePrice": 6590000 },
+  "seiko": { "brand": "Seiko", "prefix": "5 Series", "category": "Nam", "basePrice": 7182500 },
+  "tissot": { "brand": "Tissot", "prefix": "Swiss", "category": "Nữ", "basePrice": 10990000 }
+}
